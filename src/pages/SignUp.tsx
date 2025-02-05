@@ -1,6 +1,8 @@
+// src/pages/SignUp.tsx
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import chatbot_image from "../assets/images/chatbot_image.svg";
-import { Link } from "react-router-dom";
 import Input from "../components/shared/InputField";
 import Button from "../components/shared/Button";
 import authField from "../constant/authForm";
@@ -13,6 +15,11 @@ const SignUp: React.FC = () => {
     required: boolean;
   }
 
+  const navigate = useNavigate();
+  const { signup } = useAuth();
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+
   const authFields: Field[] = authField;
   let fieldState: { [key: string]: string } = {};
   authField.forEach((field: Field) => {
@@ -21,13 +28,30 @@ const SignUp: React.FC = () => {
       [field.name]: '',
     };
   });
-  const [form, setForm] = useState(fieldState)
-  const handleChange= (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [form, setForm] = useState(fieldState);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    
+    try {
+      await signup(form.email, form.password);
+      navigate('/upload');
+    } catch (err) {
+      setError('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-[#1A1A1A] to-black instrument-sans">
       {/* Left Section - Image */}
@@ -39,7 +63,7 @@ const SignUp: React.FC = () => {
         />
       </div>
 
-      {/* Right Section - Login Form */}
+      {/* Right Section - SignUp Form */}
       <div className="flex-1 flex items-center justify-center lg:justify-start px-4">
         <div className="w-full max-w-md space-y-6 lg:-translate-x-16 -translate-y-36 sm:-translate-y-56 lg:translate-y-0">
           <div className="space-y-2 lg:space-y-6 text-center lg:text-start">
@@ -47,7 +71,11 @@ const SignUp: React.FC = () => {
             <h1 className="text-white text-3xl lg:text-4xl">Let's get started.</h1>
           </div>
 
-          <form className="space-y-4 lg:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
             {authFields.map((field: Field) => (
               <Input
                 key={field.name}
@@ -58,10 +86,11 @@ const SignUp: React.FC = () => {
                 onChange={handleChange}
               />
             ))}
+
             <Button 
-              label="Sign Up" 
+              label={loading ? "Creating account..." : "Sign Up"} 
               variant="primary" 
-              type="submit" 
+              type="submit"
             />
 
             <div className="flex items-center justify-center space-x-4 pt-4">
@@ -73,7 +102,7 @@ const SignUp: React.FC = () => {
             <Button 
               label="Login into an existing account" 
               variant="secondary"
-              onClick={() => {}} 
+              onClick={() => navigate('/')}
             />
           </form>
         </div>

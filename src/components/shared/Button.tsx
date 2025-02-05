@@ -10,6 +10,7 @@ const Button: React.FC<ButtonProps> = ({
   variant = "primary",
   onClick,
   type = "button",
+
 }) => {
   const styles = {
     primary: "bg-gradient-to-r from-[#6B2C0E] to-[#D1561B] hover:bg-[#E67E22] text-white",

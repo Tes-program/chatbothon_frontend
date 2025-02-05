@@ -1,6 +1,8 @@
+// src/pages/Login.tsx
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import chatbot_image from "../assets/images/chatbot_image.svg";
-import { Link } from "react-router-dom";
 import Input from "../components/shared/InputField";
 import Button from "../components/shared/Button";
 import authField from "../constant/authForm";
@@ -13,6 +15,11 @@ const Login: React.FC = () => {
     required: boolean;
   }
 
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+
   const authFields: Field[] = authField;
   let fieldState: { [key: string]: string } = {};
   authField.forEach((field: Field) => {
@@ -21,13 +28,31 @@ const Login: React.FC = () => {
       [field.name]: '',
     };
   });
-  const [form, setForm] = useState(fieldState)
-  const handleChange= (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [form, setForm] = useState(fieldState);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    
+    try {
+      await login(form.email, form.password);
+      navigate('/upload');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      setError('Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-[#1A1A1A] to-black instrument-sans">
       {/* Left Section - Image */}
@@ -47,7 +72,11 @@ const Login: React.FC = () => {
             <h1 className="text-white text-3xl lg:text-4xl">Let's get you back in.</h1>
           </div>
 
-          <form className="space-y-4 lg:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+            
             {authFields.map((field: Field) => (
               <Input
                 key={field.name}
@@ -58,10 +87,11 @@ const Login: React.FC = () => {
                 onChange={handleChange}
               />
             ))}
+
             <Button 
-              label="Login" 
+              label={loading ? "Logging in..." : "Login"} 
               variant="primary" 
-              type="submit" 
+              type="submit"
             />
 
             <div className="flex items-center justify-center space-x-4 pt-4">
@@ -73,7 +103,7 @@ const Login: React.FC = () => {
             <Button 
               label="Create an account" 
               variant="secondary"
-              onClick={() => {}} 
+              onClick={() => navigate('/signup')}
             />
           </form>
         </div>

@@ -1,31 +1,53 @@
-import { FiMenu, FiX, FiLogOut } from "react-icons/fi";
-import { useRef, useEffect } from "react";
+import { FiMenu, FiX, FiLogOut, FiFile } from "react-icons/fi";
+import { useRef, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import api from "../../services/api";
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
-  const menuItems = [
-    { title: "Rental agreement", path: "/rental" },
-    { title: "Contracts", path: "/contracts" },
-    { title: "Non-Disclosure Agreements (NDAs)", path: "/ndas" },
-    { title: "Partnership Agreements", path: "/partnership" },
-    { title: "Terms & Conditions", path: "/terms" },
-    { title: "Consultation", path: "/consultation" },
-    { title: "Document Review", path: "/review" },
-    { title: "Legal Representation", path: "/legal" },
-    { title: "Case Management", path: "/case" },
-    { title: "Corporate Law", path: "/corporate" },
-    { title: "Intellectual Property", path: "/ip" },
-    { title: "Real Estate", path: "/estate" },
-    { title: "Legal Glossary", path: "/glossary" },
-  ];
+interface DocumentHistory {
+  document_id: number;
+  filename: string;
+  title: string;
+  created_at: string;
+}
 
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
+  const [documents, setDocuments] = useState<DocumentHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Close sidebar when clicking outside (mobile only)
+  useEffect(() => {
+    fetchDocumentHistory();
+  }, []);
+
+  const fetchDocumentHistory = async () => {
+    try {
+      const response = await api.get<DocumentHistory[]>('/documents/history');
+      setDocuments(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load document history");
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const handleDocumentClick = (documentId: number) => {
+    navigate(`/chat/${documentId}`);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -44,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
   return (
     <>
-      {/* Hamburger Menu Button - Always visible on mobile */}
+      {/* Hamburger Menu Button */}
       <button
         onClick={onToggle}
         className={`fixed top-6 left-6 text-white z-50 p-2 lg:hidden ${
@@ -66,24 +88,41 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         <h2 className="text-white text-xl pt-16 px-6 mb-6">History</h2>
 
         {/* Navigation Items */}
-        <nav className="flex flex-col">
-          {menuItems.map((item, index) => (
-            <div key={index}>
-              <a
-                href={item.path}
-                className="block px-6 py-4 text-white hover:bg-[#2A1F1F] transition-colors"
-              >
-                {item.title}
-              </a>
-              <div className="h-[0.5px] bg-[#2A1F1F]" />
-            </div>
-          ))}
+        <nav className="flex flex-col flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="text-gray-400 px-6">Loading...</div>
+          ) : error ? (
+            <div className="text-red-500 px-6">{error}</div>
+          ) : documents.length === 0 ? (
+            <div className="text-gray-400 px-6">No documents yet</div>
+          ) : (
+            documents.map((doc) => (
+              <div key={doc.document_id}>
+                <button
+                  onClick={() => handleDocumentClick(doc.document_id)}
+                  className="w-full px-6 py-4 text-white hover:bg-[#2A1F1F] transition-colors flex items-center gap-3 text-left"
+                >
+                  <FiFile size={20} className="text-[#D35400]" />
+                  <div className="overflow-hidden">
+                    <p className="truncate">{doc.title}</p>
+                    <p className="text-sm text-gray-400 truncate">
+                      {new Date(doc.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </button>
+                <div className="h-[0.5px] bg-[#2A1F1F]" />
+              </div>
+            ))
+          )}
         </nav>
 
         {/* Logout Section */}
         <div className="absolute bottom-0 w-full bg-[#1A0F0F]/80 backdrop-blur-sm border-t border-[#2A1F1F] p-4">
           <div className="flex items-center justify-between">
-            <button className="flex items-center text-[#D35400] gap-2">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center text-[#D35400] gap-2"
+            >
               <FiLogOut size={20} />
               <span>Logout</span>
             </button>
