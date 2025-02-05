@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+
+
+@import "tailwindcss";
+
+/* In your global.css or similar */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: white;
+  -webkit-box-shadow: 0 0 0px 1000px #1A1A1A inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.instrument-sans {
+    font-family: 'Instrument Sans', sans-serif;
+  }
+
+  @layer utilities {
+    .custom-dashed-border {
+      border: 2px solid transparent;
+      border-image: linear-gradient(
+        90deg,
+        #D35400 40%,  /* Visible dash length */
+        transparent 40% 60%,  /* Gap between dashes */
+        #D35400 60%  /* Next dash start */
+      ) 1;
+      border-image-repeat: round;
+    }
+  }
