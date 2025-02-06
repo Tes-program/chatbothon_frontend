@@ -23,7 +23,7 @@ const App: React.FC = () => {
           } 
         />
         <Route 
-          path="/chat" 
+          path="/chat/:id" 
           element={
             <ProtectedRoute>
               <Chat />

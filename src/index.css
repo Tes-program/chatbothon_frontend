@@ -28,3 +28,13 @@ input:-webkit-autofill:focus {
       border-image-repeat: round;
     }
   }
+
+  @media (max-width: 640px) {
+    .message-container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    .message-bubble {
+      max-width: 90% !important;
+    }
+  }
